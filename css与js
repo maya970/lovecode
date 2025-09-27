@@ -1,0 +1,26 @@
+一个网页关于隐藏的思路，一定是要统合的
+问题描述：折叠功能（点击“☰ 展开状态”按钮）在 pet/status/status.php 中无效，无论是单独访问 https://mxzgh.ct.ws/pet/status/status.php 还是通过 index.php 包含。
+控制台显示“status.php: 开始初始化折叠功能”（内联 <script>），但点击无反应，#status-details 不隐藏/显示。
+
+代码背景：无效版本：包含状态栏 HTML（<div id="status-bar">, #toggle-status, #status-content）。
+内联 <script> 实现折叠逻辑（绑定 click 事件到 #toggle-status）。
+包含 <script src="../js/script.js">。
+缺少 <html>, <head>, <body> 和 <link rel="stylesheet" href="../css/style.css">。
+
+有效版本（精简版）：移除 <script src="../js/script.js">，保留内联 <script> 和状态栏 HTML。
+通过 index.php（include 'status/status.php'）测试，CSS 由 index.php 提供。
+
+问题原因：脚本冲突：无效版本同时包含内联 <script> 和 <script src="../js/script.js">，两者都尝试为 #toggle-status 绑定 click 事件，导致冲突（后者可能覆盖前者或执行失败）。
+script.js 可能包含类似折叠逻辑，干扰内联脚本。
+
+CSS 缺失：单独访问 status.php 时，缺少 <link rel="stylesheet" href="../css/style.css">，导致 #status-content.collapsed #status-details { display: none; } 无效。
+通过 index.php 测试时，CSS 可能因缓存或路径错误未正确加载。
+
+DOM 解析问题：单独访问 status.php 缺少 <html> 等标签，DOM 可能解析不完整，影响 JavaScript 事件绑定。
+
+缓存问题：InfinityFree 服务器或浏览器可能缓存旧版 script.js 或 style.css，导致新代码未生效。
+
+解决方案：精简版修复：移除 <script src="../js/script.js">，仅保留内联 <script>，避免脚本冲突。
+测试通过 index.php，其提供 <link rel="stylesheet" href="css/style.css"> 和完整 HTML 结构（<!DOCTYPE html>, <html>, <head>, <body>）。
+内联 <script> 放在 HTML 后，确保 DOM 加载完成，事件绑定成功。
+
